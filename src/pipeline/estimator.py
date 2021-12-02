@@ -11,6 +11,23 @@ from estimator_utils.SatLasso import SatLasso, SatLassoCV
 from estimator_utils.seqparser import seqparser, map_coefs, create_coefs_dataframe
 
 def check_dataframe(df: pd.DataFrame, y_colname: str, sequence_colname: str, id_colname: str, heavy_chain_colname: str, light_chain_colname: str, map_back: bool):
+    """Checks that given dataframe conforms to expected format.
+    
+    Parameters
+    ----------
+    df : Dataframe containing amino acid sequences and associated metadata
+    y_colname : Name of column for y values (e.g. IC50 values)
+    sequence_colname : Name of column for AA sequences
+    id_colname : Name of column for identifying name of each AA sequence
+    heavy_chain_colname : Name of column for heavy chain AA sequence (only used in map_back = True)
+    light_chain_colname : Name of column for light chain AA sequence (only used in map_back = True)
+    map_back : Boolean variable to determine whether to map coefficients back to individual amino acid sequences in training data
+    
+    Raises
+    ----------
+    ValueError
+        If the dataframe is not properly formatted
+    """
     error = False
     if y_colname not in df.columns:
         error = True
@@ -30,26 +47,29 @@ def check_dataframe(df: pd.DataFrame, y_colname: str, sequence_colname: str, id_
  
 # Main function
 def fit_estimator(df: pd.DataFrame, y_colname: str, sequence_colname: str, id_colname: str, lambda1: Union[float, list], lambda2: Union[float, list], lambda3: Union[float, list], heavy_chain_colname: str = None, light_chain_colname: str = None, saturation: Union[int, float] = 'max', map_back: bool = False, cv: int = 0) -> dict:
-    """
-        Runs estimator program for amino acid sequences in given dataframe: Parse amino acid sequence and run SatLasso for variable selection.
-        Arguments:
-         - df: Dataframe containing amino acid sequences and associated metadata
-         - y_colname: Name of column for y values (e.g. IC50 values)
-         - sequence_colname: Name of column for AA sequences
-         - id_colname: Name of column for identifying name of each AA sequence
-         - lambda1: Lambda 1 value in SatLasso objective; or if using CV, start value for lambda 1
-         - lambda2: Lambda 2 value in SatLasso objective; or if using CV, start value for lambda 2
-         - lambda3: Lambda 3 value in SatLasso objective; or if using CV, start value for lambda 3
-         - heavy_chain_colname: Name of column for heavy chain AA sequence (only used in map_back = True)
-         - light_chain_colname: Name of column for light chain AA sequence (only used in map_back = True)
-         - saturation: Saturation value to use for SatLasso(CV): can be float or {"max", "mode"}
-         - map_back: Boolean variable to determine whether to map coefficients back to individual amino acid sequences in training data
-         - cv: Cross-validation value: use int > 0 for SatLassoCV with specified number of folds; otherwise SatLasso (no CV) used
-        Returns:
-         - return_dict: dictionary with values:
-            - Satlasso: SatLasso estimator fitted
-            - Coefficients: dataframe of coefficients with associated AA position
-            - If map_back is True, Mapped Coefficients: dataframe of coefficients with associated AA position mapped back to each antibody in the training data
+    """Runs estimator program for amino acid sequences in given dataframe: Parse amino acid sequence and run SatLasso for variable selection.
+    
+    Parameters
+    ----------
+    df : Dataframe containing amino acid sequences and associated metadata
+    y_colname : Name of column for y values (e.g. IC50 values)
+    sequence_colname : Name of column for AA sequences
+    id_colname : Name of column for identifying name of each AA sequence
+    lambda1 : Lambda 1 value in SatLasso objective; or if using CV, start value for lambda 1
+    lambda2 : Lambda 2 value in SatLasso objective; or if using CV, start value for lambda 2
+    lambda3 : Lambda 3 value in SatLasso objective; or if using CV, start value for lambda 3
+    heavy_chain_colname : Name of column for heavy chain AA sequence (only used in map_back = True)
+    light_chain_colname : Name of column for light chain AA sequence (only used in map_back = True)
+    saturation : Saturation value to use for SatLasso(CV): can be float or {"max", "mode"}
+    map_back : Boolean variable to determine whether to map coefficients back to individual amino acid sequences in training data
+    cv : Cross-validation value: use int > 0 for SatLassoCV with specified number of folds; otherwise SatLasso (no CV) used
+    
+    Returns
+    ----------
+    return_dict : dictionary with values the keys and values
+       "Satlasso" : SatLasso estimator fitted
+       "Coefficients" : dataframe of coefficients with associated AA position
+       If map_back is True, "Mapped Coefficients" : dataframe of coefficients with associated AA position mapped back to each antibody in the training data
     """
     
     ## Check dataframe for format
