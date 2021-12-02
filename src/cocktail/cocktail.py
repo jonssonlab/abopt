@@ -9,7 +9,6 @@ import anndata as ad
 import colorcet as cc
 import colors as fmt
 
-
 def import_cocktail_simulations(cocktail_sims_file, abdata):
     """
     Import algorithm simulations into AnnData object

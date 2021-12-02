@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-filepath = '../../data/estimator'
+filepath = '../../../data/estimator'
 filename = 'rcsb_pdb_6M0J'
 
 pdb_num = '6M0J'

@@ -22,7 +22,7 @@ def make_sequences(variants, aa_sequence, include_wildtype=False, offset=0):
             variant_sequences.append("".join(variant_sequence))
     return variant_sequences
 
-filepath = '../../data/estimator'
+filepath = '../../../data/estimator'
 data_filename = 'single_mut_effects_cleaned'
 fasta_filename = 'rcsb_pdb_6M0J'
 name_to_find = 'receptor binding domain'

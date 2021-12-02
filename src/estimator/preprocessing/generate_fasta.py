@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-filepath = '../../data/estimator'
+filepath = '../../../data/estimator'
 filename = 'NeutSeqData_VH3-53_66'#'NeutSeqData_C002-215_cleaned'
 
 df = pd.read_csv(filepath+filename+'.csv', sep=',', header=0)

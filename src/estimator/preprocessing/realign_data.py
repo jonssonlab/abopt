@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import re
 
-filepath = '../../data/estimator'
+filepath = '../../../data/estimator'
 filename = 'NeutSeqData_C002-215_cleaned'#'NeutSeqData_VH3-53_66'
 
 df = pd.read_csv(filepath+filename+'.csv', sep=',', header=0)

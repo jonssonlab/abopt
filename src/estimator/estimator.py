@@ -1,14 +1,14 @@
 import sys
 import os
 from typing import Union
+from argparse import Namespace
 
 from scipy import sparse
 import numpy as np
 import pandas as pd
-from argparse import Namespace
 
-from estimator_utils.SatLasso import SatLasso, SatLassoCV
-from estimator_utils.seqparser import seqparser, map_coefs, create_coefs_dataframe
+from .SatLasso import SatLasso, SatLassoCV
+from .seqparser import seqparser, map_coefs, create_coefs_dataframe
 
 def check_dataframe(df: pd.DataFrame, y_colname: str, sequence_colname: str, id_colname: str, heavy_chain_colname: str, light_chain_colname: str, map_back: bool):
     """Checks that given dataframe conforms to expected format.
@@ -84,7 +84,7 @@ def fit_estimator(df: pd.DataFrame, y_colname: str, sequence_colname: str, id_co
     
     ## Run satlasso fitting algorithm with / without cross-validation
     if not cv:
-        satlasso = SatLasso(lambda_1 = lambda1, lambda_2 = lambda2, lambda_3 = lambda3, saturation = saturation, normalize = (transform == 'norm'))
+        satlasso = SatLasso(lambda_1 = lambda1, lambda_2 = lambda2, lambda_3 = lambda3, saturation = saturation)
             
     else:
         assert isinstance(lambda1, list) and isinstance(lambda2, list) and isinstance(lambda3, list), "The provided lambdas for cross-validation must be lists."
@@ -99,7 +99,7 @@ def fit_estimator(df: pd.DataFrame, y_colname: str, sequence_colname: str, id_co
     return_dict = {"SatLasso": satlasso, "Coefficients": coefficients}
     
     if map_back:
-        mapped_coefficients = map_coefs(df, df_coefs, heavy_chain_colname, light_chain_colname, id_colname, sequence_colname)
+        mapped_coefficients = map_coefs(df, coefficients, heavy_chain_colname, light_chain_colname, id_colname, sequence_colname)
         return_dict["Mapped Coefficients"] = mapped_coefficients
     
     return return_dict

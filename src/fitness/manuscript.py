@@ -3,7 +3,7 @@ sys.path.insert(1, '/Users/vjonsson/Google Drive/data/repository/abopt/src/pipel
 sys.path.insert(1, '/Users/vjonsson/Google Drive/data/repository/abopt/src/plot')
  
 import fitness as fit 
-import plot_fitness as pl
+import plot as pl
 import colors as fmt 
 
 import seaborn as sb

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-filepath = '../../data/estimator'
+filepath = '../../../data/estimator'
 filename = 'NeutSeqData_VH3-53_66_aligned'#'NeutSeqData_C002-215_cleaned_aligned'
 
 correct_seq_col = 'sequence'

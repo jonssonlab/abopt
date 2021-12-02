@@ -27,7 +27,7 @@ def calculate_mw(sequence):
     return mw
     
 
-filepath = '../../data/estimator/'
+filepath = '../../../data/estimator/'
 filename_neutralization = '41586_2020_2456_MOESM7_ESM'
 
 neut_df = pd.read_csv(filepath+filename_neutralization+'.csv', sep=',', skiprows=2, header=0, nrows=93)

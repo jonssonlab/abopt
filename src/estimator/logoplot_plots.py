@@ -13,31 +13,12 @@ from PIL import ImageColor
 import logomaker
 from matplotlib import cm, colors
 import matplotlib.patches as mpatches
-from plot_utils import coefficient_cutoff, importance_cutoff
-from seqparser import create_coef_matrix
+from plot import *
 #sb.set(rc = {'font.size': 6})
 #plt.rcParams.update({'font.size': 6})
 #plt.rcParams.update({'mathtext.default': 'regular'})
 
-def plot_estimator(output_filepath, filename, estimator_df, xlabel_name, ylabel_name, main_col):
-    estimator = estimator_df.loc[estimator_df[main_col]!=0]
-    if ylabel_name == 'Importances':
-        cutoff = importance_cutoff(estimator[main_col].values)
-        estimator = estimator.loc[estimator[main_col] > cutoff]
-    if ylabel_name == 'Coefficients':
-        neg, pos = coefficient_cutoff(estimator[main_col].values)
-        estimator = estimator.loc[np.logical_or(estimator[main_col] < neg, estimator[main_col] > pos)]
-    plt.figure(figsize=[8,2], dpi=300)
-    plt.bar(range(len(estimator)), estimator[main_col].values, tick_label = estimator.index, color = '#636363', alpha = 0.7)
-    plt.xticks(rotation=90)
-    plt.xlabel(xlabel_name)
-    plt.ylabel(ylabel_name)
-    plt.tight_layout()
-    sb.despine()
-    plt.savefig(output_filepath+filename+'_bar_'+ylabel_name+'.png', dpi=300)
-    plt.close()
-
-def plot_mapped_coefficients(filepath, location_filepath, output_filepath, filename, mapped_df, antibody_name, id_col):
+def plot_mapped_coefficients_pos_neg(filepath, location_filepath, output_filepath, filename, mapped_df, antibody_name, id_col):
     mapped_antibody = mapped_df.loc[mapped_df.index.get_level_values(id_col) == antibody_name]
     neg, pos = coefficient_cutoff(mapped_antibody.coefficient.values)
     mapped_antibody = mapped_antibody.loc[np.logical_or(mapped_antibody.coefficient > pos, mapped_antibody.coefficient < neg)]
@@ -72,7 +53,7 @@ def plot_mapped_coefficients(filepath, location_filepath, output_filepath, filen
     plt.savefig(output_filepath+filename+'_'+antibody_name+'_mapped_coef_bar_negative.png', dpi=300)
     plt.close()
 
-def plot_logoplot(output_filepath, location_filepath, filename, estimator_df, coef_posmap, binding_sites, xlabel_name, ylabel_name, output_name, num_subplots, true_sequence, main_col, mapped_df, antibody_name, id_col):
+def plot_logoplot_pos_neg(output_filepath, location_filepath, filename, estimator_df, coef_posmap, binding_sites, xlabel_name, ylabel_name, output_name, num_subplots, true_sequence, main_col, mapped_df, antibody_name, id_col):
     logomap = coef_posmap.T
     estimator = estimator_df.loc[estimator_df[main_col]!=0]
     if ylabel_name == 'Importances':
@@ -164,7 +145,7 @@ mapped_coefficients = pd.read_csv(filepath+filename+'_mapped_coefficients.csv', 
 
 coef_posmap = create_coef_matrix(coefficients)
 for antibody in ['C105']: # c101, c135, c002
-    plot_mapped_coefficients(filepath, location_filepath, output_filepath, filename, mapped_coefficients, antibody, id_col)
+    plot_mapped_coefficients_pos_neg(filepath, location_filepath, output_filepath, filename, mapped_coefficients, antibody, id_col)
     specific_coefficients = mapped_coefficients.loc[np.logical_and(mapped_coefficients.index.get_level_values(id_col)==antibody, mapped_coefficients.index.get_level_values('chain') == 'H')]
     wt_seq = ''.join(list(specific_coefficients[specific_coefficients['wild_type']==True].index.get_level_values('aa')))
     specific_coefficients = specific_coefficients[['coefficient']]
@@ -174,7 +155,7 @@ for antibody in ['C105']: # c101, c135, c002
         binding_sites = pd.read_csv(location_filepath+antibody+'_contacts.csv', sep=',', header=0).number_antibody.values
     except OSError as ose:
         binding_sites = []
-    plot_logoplot(output_filepath, location_filepath, filename, coefficients, specific_coef_map, binding_sites, 'Positions', 'Coefficients', antibody, 1, wt_seq, 'coefficients', mapped_coefficients, antibody, id_col)
+    plot_logoplot_pos_neg(output_filepath, location_filepath, filename, coefficients, specific_coef_map, binding_sites, 'Positions', 'Coefficients', antibody, 1, wt_seq, 'coefficients', mapped_coefficients, antibody, id_col)
 
 # VH3-53/66
 
@@ -198,7 +179,7 @@ mapped_coefficients = pd.read_csv(filepath+filename+'_mapped_coefficients.csv', 
 
 coef_posmap = create_coef_matrix(coefficients)
 for antibody in ['C105', 'CB6', 'CV30', 'B38', 'CC12.1']: # c101
-    plot_mapped_coefficients(filepath, location_filepath, output_filepath, filename, mapped_coefficients, antibody, id_col)
+    plot_mapped_coefficients_pos_neg(filepath, location_filepath, output_filepath, filename, mapped_coefficients, antibody, id_col)
     specific_coefficients = mapped_coefficients.loc[np.logical_and(mapped_coefficients.index.get_level_values(id_col)==antibody, mapped_coefficients.index.get_level_values('chain') == 'H')]
     wt_seq = ''.join(list(specific_coefficients[specific_coefficients['wild_type']==True].index.get_level_values('aa')))
     specific_coefficients = specific_coefficients[['coefficient']]
@@ -208,23 +189,4 @@ for antibody in ['C105', 'CB6', 'CV30', 'B38', 'CC12.1']: # c101
         binding_sites = pd.read_csv(location_filepath+antibody+'_contacts.csv', sep=',', header=0).number_antibody.values
     except OSError as ose:
         binding_sites = []
-    plot_logoplot(output_filepath, location_filepath, filename, coefficients, specific_coef_map, binding_sites, 'Positions', 'Coefficients', antibody, 1, wt_seq, 'coefficients', mapped_coefficients, antibody, id_col)
-# bloom paper
-
-location_filepath = '../data/plotting/'
-filepath = '../output/estimator/data/'
-output_filepath = '../new_paper_figs/'
-filename = 'single_mut_effects_cleaned'
-y_col = 'bind_avg'
-wt_seq = 'RVQPTESIVRFPNITNLCPFGEVFNATRFASVYAWNRKRISNCVADYSVLYNSASFSTFKCYGVSPTKLNDLCFTNVYADSFVIRGDEVRQIAPGQTGKIADYNYKLPDDFTGCVIAWNSNNLDSKVGGNYNYLYRLFRKSNLKPFERDISTEIYQAGSTPCNGVEGFNCYFPLQSYGFQPTNGVGYQPYRVVVLSFELLHAPATVCGPKKSTNLVKNKCVNFHHHHHH'
-binding_filename = 'SARS_CoV_2_ACE2_epitopes'
-
-metadata = pd.read_csv(filepath+filename+'_with_predictors.csv', sep=',', header=0)
-coefficients = pd.read_csv(filepath+filename+'_coefficients.csv', sep=',', header=0, index_col=0)
-
-metadata[y_col] = -1*metadata[y_col]
-metadata[y_col+'_predicted'] = -1*metadata[y_col+'_predicted']
-
-coef_posmap = create_coef_matrix(coefficients)
-ace_binding_sites = pd.read_csv(location_filepath+binding_filename+'.csv', sep=',', header=0).epitope_location.values
-#plot_logoplot(output_filepath, location_filepath, filename, coefficients, coef_posmap, ace_binding_sites, 'Positions', 'Importances', 'sars_cov_2_ace2', 1, wt_seq, 'importances', mapped_coefficients, antibody, id_col)
+    plot_logoplot_pos_neg(output_filepath, location_filepath, filename, coefficients, specific_coef_map, binding_sites, 'Positions', 'Coefficients', antibody, 1, wt_seq, 'coefficients', mapped_coefficients, antibody, id_col)

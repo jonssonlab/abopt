@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import pandas as pd
 
@@ -71,7 +73,7 @@ def create_coefs_dataframe(coefs):
     """
     data = {
         "Coefficient": coefs,
-        "Position": list(range(len(coefs)))*len(aalist),
+        "Position": list(itertools.chain.from_iterable([[i]*len(aalist) for i in range(len(coefs) // len(aalist))])),
         "AA": aalist*(len(coefs) // len(aalist))
     }
     df = pd.DataFrame.from_dict(data=data)
@@ -109,9 +111,9 @@ def map_coefs(df, coefs, heavy_chain_name, light_chain_name, id_col, seq_col):
     
     map_df = pd.DataFrame(columns = [id_col, "Position", "Chain", "AA", "WT", "Coefficient"])
     map_df.set_index([id_col, "Position", "Chain", "AA"], inplace = True)
-    len_heavy_chain
+    len_heavy_chain = np.unique(list(map(lambda x: len(x), df[heavy_chain_name].values))).item()
     for antibody in df[id_col]:
-        sequence = df.loc[df[id_col] == antibody][heavy_chain_name]
+        sequence = df.loc[df[id_col] == antibody][heavy_chain_name].item()
         pos = 0
         for i in range(0, len(sequence)):
             if sequence[i] in aalist:
@@ -121,7 +123,7 @@ def map_coefs(df, coefs, heavy_chain_name, light_chain_name, id_col, seq_col):
                 pos = pos+1
 
     for antibody in df[id_col]:
-        sequence = df.loc[df[id_col] == antibody][light_chain_name]
+        sequence = df.loc[df[id_col] == antibody][light_chain_name].item()
         pos = 0
         for i in range(0, len(sequence)):
             if sequence[i] in aalist:
