@@ -1,6 +1,7 @@
 astropy==4.0.1.post1
 anndata==0.7.8
 backports.weakref==1.0.post1
+biopandas==0.2.9
 contextlib2==0.6.0.post1
 colorcet==3.0.0
 cvxpy @ file:///Users/runner/miniforge3/conda-bld/cvxpy_1594796770591/work
@@ -32,3 +33,5 @@ sortedcollections==1.2.1
 sphinxcontrib-jsmath==1.0.1
 threadpoolctl @ file:///tmp/tmp9twdgx9k/threadpoolctl-2.1.0-py3-none-any.whl
 typing-extensions @ file:///tmp/build/80754af9/typing_extensions_1592847887441/work
+umap-learn==umap-learn-0.5.2
+wget==3.2
