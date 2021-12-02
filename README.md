@@ -19,6 +19,11 @@ To install necessary packages:
     >   ` pip install cvxpy `
     >   ` pip install logomaker `
 
+To re-run fitness landscape calculations for the manuscript you will need to install FoldX. 
+
+http://foldxsuite.crg.eu/
+
+
 # Manual
 
 ## antibody pipeline 
