@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import seaborn as sb
 
 import cocktail 
-import utils 
 import colors as fmt 
 from itertools import combinations
 import scipy.stats as stats

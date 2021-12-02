@@ -1,13 +1,11 @@
 import sys
-sys.path.insert(1, '/Users/vjonsson/Google Drive/data/repository/abopt/src/pipeline')
-sys.path.insert(1, '/Users/vjonsson/Google Drive/data/repository/abopt/src/plot')
- 
+
 import cocktail
-import fitness as fit 
-import plot_cocktail as pl
+import fitness.fitness as fit
+import plot as pl
 import numpy as np 
 
-# Filenames for virus and antibody fitness landscapes 
+# Filenames for virus and antibody fitness landscapes
 
 antibody_fitness = '../../output/merge/rbd_ab_fitness_opt.csv'
 virus_fitness = '../../output/merge/rbd_ace2_fitness.csv'
@@ -42,7 +40,7 @@ noise_sims = 0
 
 ''' Run simulations ''' 
 
-#cocktails = cocktail.run_simulations(fitness.fitdata, layer, coverage,lam1, lam2, noise_sims=noise_sims, algorithm = 'A1')
+cocktails = cocktail.run_simulations(fitness.fitdata, layer, coverage,lam1, lam2, noise_sims=noise_sims, algorithm = 'A1')
 
 cocktail_sims_file = '../../output/cocktail/cocktails_allsims_current.csv'
 simsdata = cocktail.import_cocktail_simulations(cocktail_sims_file, fitness.fitdata)
