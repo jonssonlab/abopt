@@ -14,7 +14,6 @@ To install necessary packages:
     >   ` pip install wget `
     >   ` pip install biopandas `
     >   ` pip install scikit-learn`
-    >   ` pip install satlasso `
     >   ` pip install Levenshtein `
     >   ` pip install cvxpy `
     >   ` pip install logomaker `
