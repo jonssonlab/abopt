@@ -1,0 +1,32 @@
+astropy==4.0.1.post1
+backports.weakref==1.0.post1
+contextlib2==0.6.0.post1
+cvxpy @ file:///Users/runner/miniforge3/conda-bld/cvxpy_1594796770591/work
+dask @ file:///tmp/build/80754af9/dask-core_1594156306305/work
+ecos==2.0.7.post1
+future==0.18.2
+greenlet==0.4.16
+intervaltree @ file:///tmp/build/80754af9/intervaltree_1594361675072/work
+jupyter-core==4.6.3
+logomaker @ file:///opt/conda/conda-bld/logomaker_1595955365511/work
+matplotlib @ file:///opt/concourse/worker/volumes/live/59859a4b-794b-4c9f-51fd-a0ac1d1ab595/volume/matplotlib-base_1592846058943/work
+mkl-random==1.1.1
+more-itertools==8.4.0
+mpmath==1.1.0
+nose @ file:///opt/concourse/worker/volumes/live/a029938e-1732-4cd8-5b98-0542283d158b/volume/nose_1594377915100/work
+numpy==1.18.5
+numpydoc @ file:///tmp/build/80754af9/numpydoc_1594166760263/work
+osqp==0.6.1
+pandas @ file:///opt/concourse/worker/volumes/live/5ef6147e-ea92-446e-4065-0c8c7435293f/volume/pandas_1592841676717/work
+pickleshare @ file:///opt/concourse/worker/volumes/live/93ec39d8-05bb-4f84-7efc-98735bc39b70/volume/pickleshare_1594384101884/work
+pycosat==0.6.3
+python-Levenshtein @ file:///Users/runner/miniforge3/conda-bld/python-levenshtein_1597160510126/work
+regex @ file:///opt/concourse/worker/volumes/live/93a9c6ee-7d77-4975-4d26-29732dd5574b/volume/regex_1593435592218/work
+requests @ file:///tmp/build/80754af9/requests_1592841827918/work
+Rtree==0.9.4
+scipy @ file:///opt/concourse/worker/volumes/live/7f5e51f8-abf3-4409-4c56-a4fb14cc9869/volume/scipy_1593104185999/work
+seaborn==0.10.1
+sortedcollections==1.2.1
+sphinxcontrib-jsmath==1.0.1
+threadpoolctl @ file:///tmp/tmp9twdgx9k/threadpoolctl-2.1.0-py3-none-any.whl
+typing-extensions @ file:///tmp/build/80754af9/typing_extensions_1592847887441/work
