@@ -1,59 +1,68 @@
 import sys
-sys.path.insert(1, '/Users/vjonsson/Google Drive/data/repository/abopt/src/pipeline')
-
-import pandas as pd
-import matplotlib.pyplot as plt 
-import numpy as np 
-import scipy.stats as stats 
-from sklearn import preprocessing
 import fitness as fit
 
 
-''' Reference to estimator file '''
+### Reference to estimator file
 estimator_filename = '../../output/estimator/NeutSeqData_VH3-53_66_aligned_mapped_coefficients.csv'
 file_ab_locations = '../../data/location/C105_locations.csv'
 
 antibody_metadata = '../../data/meta/antibody_list.tsv'
-antibody_list = ['C105']
+antibody_list = ['C105', 'C105_TH28I_YH58F']
 
-#antibody_list = ['B38', 'C105','CC121', 'CB6', 'COVA2-39','CV30']
+energy_estimator_path = '/Applications/foldxMacC11.tar_/'
 
-fitdata = fit.Fitness(antibody_metadata, antibody_list)
+### Mutationally scan virus in bound and unbound forms of C105 and C105opt
 
-pdb_name = fitdata.pdb('C105')
-
-
-''' Repair antibody/viral receptor original structure, outputs to output/repair '''
-
-fitdata.repair([pdb_name])
-
-' Remove virus and antibody from WT structure and repair these structures '
-fitdata.remove([pdb_name], chain_type= 'antibody', property='repair')
-fitdata.remove([pdb_name], chain_type= 'virus', property='repair')
-
-pdb_list = [pdb_name + '_Repair', pdb_name + '_Repair_less_ab']
-
-' Repair these structures '
-fitdata.repair(pdb_list,property='remove')
+### Instantiate fitness object
 
 
-' Mutational scanning of C105 repaired pdbs '
+    
+fitdata = fit.Fitness(antibody_metadata_file=antibody_metadata, antibodies=antibody_list, energy_estimator='foldx', energy_estimator_path= energy_estimator_path)
 
-' Construct list of locations to scan '
 
-location_file = '../../data/location/SARS_CoV_2_RBD_locations.csv'
+pdb_names = [fitdata.pdb(antibody) for antibody in antibody_list]
 
-posscan = fitdata.construct_position_scan_string (pdb_name='C105', location_file=location_file, chain = None, filter= [472,501])
-pdb_list = [pdb_name + '_Repair', pdb_name + '_Repair_less_ab']
 
-fitdata.scan (pdb_list=pdb_list, property='repair', scan_type='location', scan_values=posscan, scan_molecule='virus')
+### Repair antibody/viral receptor original structure, outputs to output/repair
 
-' Constrain estimator to very large negative of positive coefficients '
-cutoff = 1e-8
-antibody = 'C105'
-estimator = fitdata.constrain(data_type ='estimator', data_file=estimator_filename, antibody=antibody, cutoff = [-cutoff, cutoff], top=1000)
+#fitdata.repair(pdb_names)
 
-' Graph the estimator locations to mutate '
+### Remove antibody from WT structure and repair these structures
 
-' Get pdb sequence locations on antibody that are less than 98 '
-estimator = estimator.loc[estimator.pdb_location < '98']
+#fitdata.remove(pdb_names, chain_type= 'antibody', property='repair')
+#fitdata.remove(pdb_names, chain_type= 'virus', property='repair')
+
+pdb_list = [pdb_name + '_Repair_less_ab' for pdb_name in pdb_names]
+
+### Repair structures 
+# fitdata.repair(pdb_list,property='remove')
+
+pdb_list_repair_less_ab = [pdb_name + '_Repair_less_ab_Repair' for pdb_name in pdb_names]
+pdb_list_repair = [pdb_name + '_Repair' for pdb_name in pdb_names]
+
+pdb_list = pdb_list_repair + pdb_list_repair_less_ab
+
+
+### Construct a string of locations to scan 
+
+sars_cov2 = '../../data/location/SARS_CoV_2_RBD_locations.csv'
+
+
+
+posscan = fitdata.construct_position_scan_string (antibody_name = 'C105', virus_sequence_file=sars_cov2,
+                                                  filter_type='chain', filter=None,
+                                                  scan_molecule='virus')
+
+
+
+
+fitdata.scan (pdb_list=pdb_list, property='repair', scan_values=posscan, scan_molecule='virus')
+
+### Calculate energies and output 
+
+fitdata.energy(antibody='C105', pdb = '6xcm_Repair', pdb_less= '6xcm_Repair_less_ab_Repair')
+fitdata.energy(antibody='C105_TH28I_YH58F', pdb = '6xcm_Repair_TH28I_YH58F_Repair',
+               pdb_less= '6xcm_Repair_TH28I_YH58F_Repair_less_ab_Repair')
+
+
+
