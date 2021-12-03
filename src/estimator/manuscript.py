@@ -1,6 +1,6 @@
-import .estimator
-from .plot import *
-from .seqparser import seqparser
+import estimator
+from plot import *
+from seqparser import seqparser
 
 from scipy import sparse
 import numpy as np
