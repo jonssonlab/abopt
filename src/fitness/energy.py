@@ -1,14 +1,10 @@
 import pandas as pd
-import os 
-import sys 
+#import os 
+#import sys 
 import structure as su
-import matplotlib.pyplot as plt 
-import seaborn as sb 
+#import matplotlib.pyplot as plt 
+#import seaborn as sb 
 import utils as utils
-
-
-
-# ND this needs to be cleaned up some maybe to not hardcode certain things.
 
 
 '''
@@ -103,7 +99,6 @@ def read_pdb_locations(file_location='', antibody=''):
 
     df = pd.read_csv(file_location)
     
-    print(df.head())
     df = df.dropna(axis=0)
     df['pdb_location'] = df.pdb_location.astype(str).str[:-2]
     df['fasta_location'] = df.fasta_location.astype(str)
@@ -149,26 +144,28 @@ def write_to_mutations_file(mutations, mutations_filename, out_dir):
 
 
     
-def calculate_ddg_bind(antibody, pdb, pdb_less, scantype='virus', indir='./', outdir=''):
+def calculate_ddg_bind(antibody:str=None, pdb:str=None, pdb_less:str=None, scan_molecule:str='virus',
+                       in_dir:str='./', out_dir:str='./'):
+    
     ''' Calculate difference in Gibbs energy of binding for mutational scanning on virus bound to antibody
         antibody: name of antibody 
         pdb: PDB name, complexed structure 
         pdb_less:  PDB structure name, single uncomplexed structure
-        scantype:  whether virus scanning or antibody scanning was performed 
-        indir: input directory
-        output: ouptut directory 
+        scan_molecule:  whether virus scanning or antibody scanning was performed 
+        in_dir: input directory
+        out_dir: ouptut directory 
     '''
 
     less_struct = 'less_ab'
-    if scantype == 'ab': less_struct = 'less_virus'
+    if scan_molecule == 'ab': less_struct = 'less_virus'
 
-    ddg_path = indir
+    ddg_path = in_dir
     prefix='PS_'
-    scantype = '_' + scantype
+    scan_molecule = '_' + scan_molecule
     suffix ='_scanning_output.txt'
 
-    dg1 = read_dg_file(ddg_path + prefix + pdb  + scantype + suffix)
-    dg2 = read_dg_file(ddg_path + prefix + pdb_less + scantype + suffix)
+    dg1 = read_dg_file(ddg_path + prefix + pdb  + scan_molecule + suffix)
+    dg2 = read_dg_file(ddg_path + prefix + pdb_less + scan_molecule + suffix)
 
     ddg = pd.merge(dg1, dg2, on='mut_chain', suffixes = ['', '_less'])
 
@@ -184,16 +181,13 @@ def calculate_ddg_bind(antibody, pdb, pdb_less, scantype='virus', indir='./', ou
     ddg[ddg_name] = ddg['dg'] - ddg['dg_less']
     ddg['antibody'] = antibody
     
-    ''' Output the file to the appropriate directory ''' 
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-    ddg.to_csv(outdir + 'ddg_bind_' + antibody + scantype + '_scanning.csv', index=None)
+    ddg.to_csv(out_dir + 'ddg_bind_' + antibody + scan_molecule + '_scanning.csv', index=None)
     print (ddg.head())
     return ddg
 
 
 ''' API ''' 
-def calculate_dddg_bind(antibody, pdb_opt, pdb_opt_less, pdb, pdb_less, scantype='virus', indir='./', outdir=''):
+def calculate_dddg_bind(antibody, pdb_opt, pdb_opt_less, pdb, pdb_less, scan_molecule='virus', in_dir='./', out_dir=''):
     ''' Calculate difference in Gibbs energy of binding for virus mutational scanning bound to antibody
         and designed antibody.  Differences in binding energy are calculated for places where designed
         mutations are <=4A from virus receptor.  
@@ -202,21 +196,21 @@ def calculate_dddg_bind(antibody, pdb_opt, pdb_opt_less, pdb, pdb_less, scantype
         pdb_opt_less:  PDB structure name of optimized/designed antibody, single uncomplexed structure 
         pdb: PDB name, complexed structure 
         pdb_less:  PDB structure name, single uncomplexed structure
-        scantype:  whether virus scanning or antibody scanning was performed 
-        indir: input directory
-        output: ouptut directory 
+        scan_molecule:  whether virus scanning or antibody scanning was performed 
+        in_dir: input directory
+        out_dir: ouptut directory 
     '''
 
     less_struct = 'less_ab'
-    if scantype == 'ab': less_struct = 'less_virus'
+    if scan_molecule == 'ab': less_struct = 'less_virus'
 
-    ddg_path = indir
+    ddg_path = in_dir
     prefix='PS_'
-    scantype = '_' + scantype
+    scan_molecule = '_' + scan_molecule
     suffix ='_scanning_output.txt'
 
-    dg1 = read_dg_file(ddg_path + prefix + pdb  + scantype + suffix)
-    dg2 = read_dg_file(ddg_path + prefix + pdb_less + scantype + suffix)
+    dg1 = read_dg_file(ddg_path + prefix + pdb  + scan_molecule + suffix)
+    dg2 = read_dg_file(ddg_path + prefix + pdb_less + scan_molecule + suffix)
 
     ddg = pd.merge(dg1, dg2, on='mut_chain', suffixes = ['', '_less'])
 
@@ -232,9 +226,9 @@ def calculate_dddg_bind(antibody, pdb_opt, pdb_opt_less, pdb, pdb_less, scantype
     ddg[ddg_name] = ddg['dg'] - ddg['dg_less']
     
     ''' Output the file to the appropriate directory ''' 
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-    ddg.to_csv(outdir + 'ddg_bind_' + antibody + scantype + '_scanning.csv', index=None)
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+    ddg.to_csv(out_dir + 'ddg_bind_' + antibody + scan_molecule + '_scanning.csv', index=None)
     print (ddg.head())
     return ddg
 
