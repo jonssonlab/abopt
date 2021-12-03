@@ -1,20 +1,19 @@
 import energy as e 
 import foldx as foldx
 import pandas as pd
-import structure 
-import os 
+import structure
+import os as os
 import anndata as ad
 import umap 
-
 import numpy as np
 import scipy.stats as stats
-
 import colors as fmt 
+
 
 class Fitness:
 
-
-    def __init__(self, antibody_metadata_file:str, antibody_fitness_file: str=None, virus_fitness_file: str=None, antibodies:list =None, dropna:bool=False):
+    def __init__(self, antibody_metadata_file:str, antibody_fitness_file: str=None, virus_fitness_file: str=None, antibodies:list=None, energy_estimator:str=None, energy_estimator_path:str=None, dropna:bool=False):
+        
         """ Construct a fitness object with precalculated fitness landscapes, or
             an object for fitness landscape construction. 
         """        
@@ -24,19 +23,26 @@ class Fitness:
         
         self.abfile = antibody_metadata_file
 
-        ''' If fitness landscape is pre-calculated, import and set fitdata '''
+        ### If fitness landscape is pre-calculated, import and set fitdata
         self.fitdata = ad.AnnData()
         self.antibodies = antibodies
         self.embedding = pd.DataFrame() #Antibody distance
-        
-        if antibody_fitness_file:
-            self.import_fitness_landscapes(antibody_fitness_file, virus_fitness_file, antibody_metadata_file, dropna=dropna)
 
-        ''' abdata is antibody metadata ''' 
+        ### If fitness landscape needs to generated, set energy estimator tool and path 
+        if energy_estimator == None:            
+            if antibody_fitness_file:
+                self.import_fitness_landscapes(antibody_fitness_file, virus_fitness_file, self.abfile, dropna=dropna)
+            else:
+                raise ValueError('Provide either fitness estimator or fitness file')
+        elif energy_estimator == 'foldx':
+            self.energy_estimator = foldx.FoldXInterface(energy_estimator_path)
+        else:
+            raise ValueError('Not implemented')
+            
+        ### Set abdata with antibody metadata properties
         self.abdata = pd.read_table(self.abfile, sep=',')
         self.abdata['pdb_file'] = [pdb +'.pdb' for pdb in self.abdata.pdb]    
         self.abdata  = self.abdata.loc[self.abdata.antibody.isin(self.antibodies)]
-
         self.abdata['pdb_dir'] = [ '../../data/pdb/' + ab +'/'  for ab in self.antibodies]
         self.abdata['repair_dir'] = [ self.outpath + 'repair/' + ab +'/' for ab in self.antibodies]
         self.abdata['remove_dir'] = [self.outpath + 'remove/' + ab +'/' for ab in self.antibodies]
@@ -46,11 +52,10 @@ class Fitness:
         self.abdata['design_dir'] = [self.outpath + 'design/' + ab +'/' for ab in self.antibodies]
         self.abdata['mutate_dir'] = [self.outpath + 'mutate/' + ab +'/' for ab in self.antibodies]
 
-        ''' dictionnaries ''' 
+        ### Construct dictionnaries for convenience 
         self.abpdb = dict(zip(self.abdata.antibody, self.abdata.pdb))
         self.abrbd = dict(zip(self.abdata.antibody, self.abdata.rbdchain))
         self.pdbrbd = dict(zip(self.abdata.pdb, self.abdata.rbdchain))
-
 
     def remove_antibodies(self,antibodies:list):
 
@@ -65,17 +70,17 @@ class Fitness:
         dirs = ['repair', 'remove', 'constrain', 'scan', 'energy', 'design', 'mutate']
 
         if os.path.isdir(outpath) == False:
-            os.mkdir(outpath)
+            mkdir(outpath)
 
         for dir in dirs:
             path = outpath + dir 
             if os.path.isdir(path) == False:
-                os.mkdir(path)
+                mkdir(path)
                 
     def check_dir(self, outpath):
         
         if os.path.isdir(outpath) == False:
-            os.mkdir(outpath)
+            mkdir(outpath)
                 
     # Get pdb name 
     def pdb(self, antibody: str):
@@ -89,7 +94,7 @@ class Fitness:
             return self.abrbd[antibody]
 
         
-    # Get name of directory given antibody or pdb name and property e.g. repair, mutate, '''  
+    # Get name of directory given antibody or pdb name and property e.g. repair, mutate
     def pdbdir(self, pdb: str=None, property:str ='pdb'):
 
         property_dir = 'pdb_dir' 
@@ -102,22 +107,20 @@ class Fitness:
         return self.abdata.loc[self.abdata.pdb == pdb][property + '_dir'].values[0]
 
 
+
     '''' Repair structure, if pdblist None then repair all structures in fitness '''
     
     def repair (self, pdb_list: list=None, property: str = 'pdb'):
 
         if pdb_list == None: # Run through all 
             pdb_list = self.abdata.pdb.unique()
-
         
         for pdb in pdb_list:
             pdb_name = pdb[0:4]
-
             pdb_dir = self.pdbdir(pdb_name, property=property)
             out_dir = self.outdir(pdb_name, property ='repair')
             self.check_dir(out_dir)
-
-            foldx.run_repair_model(pdb, pdb_dir, out_dir)
+            self.energy_estimator.run_repair_model(pdb, pdb_dir, out_dir)
 
             
     ''' Remove a chain from the structure ''' 
@@ -126,12 +129,15 @@ class Fitness:
         for pdb in pdb_list:            
         
             pdb_name = pdb + '_Repair.pdb'
-            
             pdb_dir = self.pdbdir(pdb, property='repair')
             out_dir = self.outdir(pdb, property ='remove')
             self.check_dir(out_dir)
 
             chains = structure.label_chains(pdb)
+
+            if chains == None: # most likely not in  PDB
+                rbd_chain = self.rbdchain(pdb_name=pdb)
+
             pdb_less = structure.remove_chains(pdb_dir, pdb_name , chains, chain_type, out_dir)
             
 
@@ -155,59 +161,56 @@ class Fitness:
         return constrained
 
 
-    def scan (self, pdb_list:list=None, property: str ='repair', scan_type:str='location', scan_values:list=None, scan_molecule:str='virus'):
+    def scan (self, pdb_list:list=None, property: str ='repair', scan_type:str='location',scan_values:str=None, scan_molecule:str='virus'):
 
         """ Mutational scanning 
         """
 
-
         for pdb in pdb_list:            
-        
-            pdb_file = pdb + '_Repair.pdb'
 
-            pdb_name = pdb[0:4]
+            pdb_file = pdb + '.pdb'
+            if 'TH28I' in pdb: #kludge fix
+                pdb_name = '6xcm_Repair_TH28I_YH58F'
+                
+            else: 
+                pdb_name = pdb[0:4]
+
             pdb_dir = self.pdbdir(pdb_name, property='repair')
             out_dir = self.outdir(pdb_name, property ='scan')
             self.check_dir(out_dir)
 
-
-            if scan_type == 'mutation': 
+            # All mutations 
+            if scan_type == 'all': 
                 pdbname, pdb_loc = e.read_pdb_locations(file_location=file_ab_locations)
             elif scan_type =='location':
                 posscan_str =  scan_values 
             elif scan_type == 'chain': # position scan entire chain
                 posscan_str =  ","
-                
-            foldx.run_position_scan (pdb_file, scan_molecule,  posscan_str, pdb_dir, out_dir)
 
 
-    def energy (self,antibody, pdb, pdb_less, scantype, energy_type, indir, outdir):
+            self.energy_estimator.run_position_scan (pdb_file, scan_molecule,  scan_values, pdb_dir, out_dir)
+
+
+
+    def energy (self,antibody:str=None, pdb:str=None, pdb_less:str=None, scan_molecule:str='virus'):
 
         """ Calculate energies 
-        """ 
-
-        if os.path.isdir(outdir) == False:
-            os.mkdir(outdir)
-
-        if energy_type =='ddgbind':
-            ddg = e.calculate_ddg_bind(antibody,pdb, pdb_less, scantype=scantype, indir=indir, outdir=outdir)
-
-        ddg.to_csv(outdir + energy_type + '_' + antibody + '_' + scantype + '_scanning.txt', index=None)
-
-
-    def design (self, designtype, designval, file_estimator, file_energies, out_dir):
-
-        """ Returns places to mutate on antibody 
         """
 
-        if os.path.isdir(out_dir) == False:
-            os.mkdir(out_dir)
+        pdb_file = pdb + '.pdb'
+        if 'TH28I' in pdb: #kludge fix
+            pdb_name = '6xcm_Repair_TH28I_YH58F'
+                
+        else: 
+            pdb_name = pdb[0:4]
 
-        if designtype == 'antibody design':
-            estimator = pd.read_csv(file_estimator)
-            energies = pd.read_csv(file_energies)
-            merged = energies.merge(estimator,how='inner', left_on='wt', right_on='wt_pdb')
-            merged.to_csv(out_dir + designval + '_design.csv', index=None) 
+        pdb_dir = self.pdbdir(pdb_name, property='scan')
+        out_dir = self.outdir(pdb_name, property ='energy')
+        self.check_dir(out_dir)
+
+        ddg = e.calculate_ddg_bind(antibody,pdb, pdb_less, scan_molecule=scan_molecule, in_dir=pdb_dir, out_dir=out_dir)
+
+        ddg.to_csv(out_dir + 'ddg_' + antibody + '_' + scan_molecule + '_scanning.txt', index=None)
 
 
     def mutate(self, filename: str, chain: str, mlist_filename: str = None, llist_filename: str = None, repair: bool = False, output_dir: str = None):
@@ -237,30 +240,44 @@ class Fitness:
         if os.path.isdir(out_dir) == False:
         os.mkdir(out_dir)
         
-        foldx.create_individual_list(mutations,pdb,out_dir)
+        self.energy_tool.create_individual_list(mutations,pdb,out_dir)
         foldx.run_build_model(pdb, 'individual_list.txt', pdb_dir, out_dir)
         foldx.rename_buildmodel_files(pdb[:-4], out_dir, './individual_list.txt')
         
         '''
 
 
-    def construct_position_scan_string (self, pdb_name:str ='', location_file: str='', chain:str = None, filter:str = None):
+    def construct_position_scan_string (self,antibody_name:str='',pdb_name:str ='', virus_sequence_file: str='',
+                                        chain:str = None, filter_type:str='position', filter:str = None,
+                                        scan_molecule:str='virus'):
 
-        ''' read location file and extract locations to mutate including chain''' 
-        ab_pos = pd.read_csv(location_file)
-
-        ab_pos = ab_pos.fillna(0)
-        ab_pos['pdb_location'] =  ab_pos.pdb_location.astype(int)
-        ab_pos['scan_str'] = ab_pos.aa + ab_pos.chain + ab_pos.pdb_location.astype(str) +'a'
-
-        if chain: 
-            ab_pos = ab_pos.loc[ab_pos.chain == chain]
+        
+        if scan_molecule == 'virus':
             
-        if filter: 
-            ab_pos  = ab_pos.loc[ab_pos.pdb_location.isin(filter)]
+            rbd_chain = self.rbdchain(antibody = antibody_name)
+            ab_pos = pd.read_csv(virus_sequence_file)
 
-        posscan = ab_pos.scan_str
-        posscan_str =  ",".join(posscan)
+            if filter_type == 'chain': 
+                ab_pos = ab_pos.fillna(0)
+                ab_pos['scan_str'] = ab_pos.aa + rbd_chain + ab_pos.pdb_location.astype(int).astype(str) +'a'
+                posscan = ab_pos.scan_str
+
+            elif filter_type == 'mutation':
+                posscan= [] 
+                if filter:
+                    for m in filter:
+                        posscan.append(m[0] + rbd_chain + m[1:])
+            
+            elif filter_type=='location':
+                if filter:
+                    ab_pos  = ab_pos.loc[ab_pos.pdb_location.isin(filter)]
+                posscan = ab_pos.scan_str
+
+            posscan_str =  ",".join(posscan)
+                
+        else:
+            raise NotImplementedError
+
         return posscan_str
 
 
@@ -389,7 +406,6 @@ class Fitness:
         abs2 = [ab for ab in antibody_group_2 if ab in antibodies]
         
         data['location'] = data.index.str[1:-1]
-
         
         ''' Perform t test and compare accross locations designed ab vs wt  '''
         test = pd.DataFrame()
@@ -421,5 +437,3 @@ class Fitness:
         test['fold_change'] = np.abs(sm1/sm2)
 
         return test
-
-
