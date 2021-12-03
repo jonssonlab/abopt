@@ -5,7 +5,6 @@ from .seqparser import seqparser
 from scipy import sparse
 import numpy as np
 import pandas as pd
-exit()
 
 plot = False
 
