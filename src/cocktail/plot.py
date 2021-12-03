@@ -2,8 +2,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sb
 
-import cocktail 
-import colors as fmt 
+if __package__ is None or __package__ == "":
+    import cocktail
+    import colors as fmt
+else:
+    from . import cocktail
+    from . import colors as fmt
 from itertools import combinations
 import scipy.stats as stats
 import scipy

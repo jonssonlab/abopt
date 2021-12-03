@@ -1,10 +1,14 @@
 import pandas as pd
 #import os 
-#import sys 
-import structure as su
+#import sys
+if __package__ is None or __package__ == "":
+    import structure as su
+    import utils as utils
+else:
+    from . import structure as su
+    from . import utils
 #import matplotlib.pyplot as plt 
-#import seaborn as sb 
-import utils as utils
+#import seaborn as sb
 
 
 '''

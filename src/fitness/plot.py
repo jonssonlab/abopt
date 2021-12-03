@@ -1,6 +1,9 @@
 import sys
 
-import colors as colors 
+if __package__ is None or __package__ == "":
+    import colors as colors
+else:
+    from . import colors
 #import random 
 #import pandas as pd
 import seaborn as sb 

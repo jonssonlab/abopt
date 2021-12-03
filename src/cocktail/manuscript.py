@@ -1,7 +1,10 @@
 import sys
 
-import cocktail
-import fitness.fitness as fit
+if __package__ is None or __package__ == "":
+    import cocktail
+else:
+    from . import cocktail
+import fitness.fitness as fit ## TODO
 import plot as pl
 import numpy as np 
 

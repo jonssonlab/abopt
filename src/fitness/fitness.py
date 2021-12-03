@@ -1,5 +1,12 @@
-import energy as e 
-import foldx as foldx
+if __package__ is None or __package__ == "":
+    import energy as e
+    import foldx as foldx
+    import colors as fmt
+else:
+    from . import energy as e
+    from . import foldx
+    from . import colors as fmt
+
 import pandas as pd
 import structure
 import os as os
@@ -7,7 +14,6 @@ import anndata as ad
 import umap 
 import numpy as np
 import scipy.stats as stats
-import colors as fmt 
 
 
 class Fitness:

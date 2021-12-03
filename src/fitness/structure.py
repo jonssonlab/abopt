@@ -2,7 +2,10 @@ import os
 import pandas as pd
 import wget
 from biopandas.pdb import PandasPdb
-import utils as utils
+if __package__ is None or __package__ == "":
+    import utils as utils
+else:
+    from . import utils
 
 
 def delete_specified_chains(atom_panda, labeled_chains, keyword_list):# atom_panda, labeled_chains, keyword_list):

@@ -1,10 +1,15 @@
-import estimator
-from plot import *
-from seqparser import seqparser
-
 from scipy import sparse
 import numpy as np
 import pandas as pd
+
+if __package__ is None or __package__ == "":
+    import estimator
+    from plot import *
+    from seqparser import seqparser
+else:
+    from . import estimator
+    from .plot import *
+    from .seqparser import seqparser
 
 plot = False
 

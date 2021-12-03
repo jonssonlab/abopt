@@ -7,7 +7,11 @@ import scipy.stats as stats
 import scipy.spatial as sp, scipy.cluster.hierarchy as hc
 import anndata as ad 
 import colorcet as cc
-import colors as fmt
+
+if __package__ is None or __package__ == "":
+    import colors as fmt
+else:
+    from . import colors as fmt
 
 def import_cocktail_simulations(cocktail_sims_file, abdata):
     """

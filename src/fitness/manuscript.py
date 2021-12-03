@@ -1,6 +1,10 @@
-import fitness as fit 
-import plot as pl
-import colors as fmt 
+import fitness as fit ## TODO
+if __package__ is None or __package__ == "":
+    import plot as pl
+    import colors as fmt
+else:
+    from . import plot as pl
+    from . import colors as fmt
 import seaborn as sb
 import matplotlib.pyplot as plt 
 import pandas as pd

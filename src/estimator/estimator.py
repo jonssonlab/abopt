@@ -7,8 +7,11 @@ from scipy import sparse
 import numpy as np
 import pandas as pd
 
-from .SatLasso import SatLasso, SatLassoCV
-from .seqparser import seqparser, map_coefs, create_coefs_dataframe
+if __package__ is None or __package__ == "":
+    from SatLasso import SatLasso, SatLasso
+else:
+    from .SatLasso import SatLasso, SatLassoCV
+    from .seqparser import seqparser, map_coefs, create_coefs_dataframe
 
 def check_dataframe(df: pd.DataFrame, y_colname: str, sequence_colname: str, id_colname: str, heavy_chain_colname: str, light_chain_colname: str, map_back: bool):
     """Checks that given dataframe conforms to expected format.
