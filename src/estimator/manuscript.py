@@ -5,8 +5,9 @@ from .seqparser import seqparser
 from scipy import sparse
 import numpy as np
 import pandas as pd
+exit()
 
-plot = True
+plot = False
 
 ## For Nussenzweig data
 ## Read in the data
