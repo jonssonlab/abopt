@@ -1,29 +1,32 @@
 import sys
-sys.path.insert(1, '/Users/vjonsson/Google Drive/data/repository/abopt-private/src/pipeline')
 
 import colors as colors 
-import random 
-import pandas as pd
+#import random 
+#import pandas as pd
 import seaborn as sb 
-import foldx as fx
+#import foldx as fx
 import os 
-import structure 
-import energy as e     
+#import structure 
+#import energy as e     
 import plotutils as pu 
 import matplotlib.pyplot as plt 
 from matplotlib.pyplot import gcf
 
-import numpy as np 
-import scipy.stats as stats 
-import sklearn.preprocessing as pp
-
+#import numpy as np 
+#import scipy.stats as stats 
+#import sklearn.preprocessing as pp
 
 import utils
-from scipy import stats
-import itertools as it 
-import anndata as ad 
+#from scipy import stats
+#import itertools as it 
+
     
 
+
+figs_dir = '../../output/figs/'
+
+if os.path.isdir(figs_dir) == False:
+    os.mkdir(figs_dir)
 
 
 def plot_fitness_heatmap(fitness, data, show:bool=True, legend:bool=True, figsize=(10,3)):
@@ -57,12 +60,13 @@ def plot_fitness_heatmap(fitness, data, show:bool=True, legend:bool=True, figsiz
                             label=label, linewidth=0)
         g.ax_col_dendrogram.legend(loc="center", ncol=5, title ='Class, VH gene')
         
-    plt.savefig('../../output/figs/' + figname + '.png', dpi=300, transparent=True)
+    plt.savefig(figs_dir + figname + '.png', dpi=300, transparent=True)
     if show: 
         plt.show()
 
 
-def plot_fitness_violin(fitness,data, hue:str=None, show:bool=True, legend:bool = True, figsize=(10,3), scale_data: bool=True):
+def plot_fitness_violin(fitness,data, hue:str=None, show:bool=True, legend:bool = True,
+                        figsize=(10,3), scale_data: bool=True):
 
     figname = 'fitness_violin'
     abclass = fitness.fitdata.var.abclass
@@ -75,8 +79,10 @@ def plot_fitness_violin(fitness,data, hue:str=None, show:bool=True, legend:bool 
     
     vhgene_colors = [ VH_GENE_COLOR_DICT[vh] for vh in vhgene]
     abclass_colors = [CLASS_AB_COLOR_DICT[c] for c in abclass]
-    
-    melted = data.melt(id_vars='location', value_vars=data.columns )
+
+    data = data.reset_index()
+
+    melted = data.melt(id_vars='location', value_vars=data.columns[1:-1] )
 
     value = 'value' 
     if scale: 
@@ -90,7 +96,6 @@ def plot_fitness_violin(fitness,data, hue:str=None, show:bool=True, legend:bool 
         hue = 'variable'
         hue_color = 'Set1'
 
-    melted['pos'] = melted.value >0
 
     grouped = melted.groupby(['location', 'variable']).sum().reset_index().groupby('variable').sum().reset_index()
 
@@ -175,9 +180,8 @@ def plot_fitness_landscape(fitness, groupby:str = None, hue:str=None, antibodies
     figname = 'fitness_landscape'
 
     data = fitness.fitdata.to_df()
-
     data['location'] = data.index.str[1:-1] 
-    print(data.location.unique())
+
 
     if antibodies:
         a = data.columns
@@ -187,18 +191,13 @@ def plot_fitness_landscape(fitness, groupby:str = None, hue:str=None, antibodies
 
     data['location'] = data.index.str[1:-1]
 
-    print(data.location.unique())
-    print(locations)
-
-    
     grouped = data
 
     if locations:
-        grouped = grouped.loc[data['location'].isin(locations)]
-        print (grouped)
-
+        grouped = grouped.loc[data['location'].isin(locations)].reset_index().drop('mut', axis=1)        
         if groupby == 'location':
-            grouped = grouped.groupby('location').mean().reset_index()
+            grouped = grouped.groupby('location').mean().reset_index().drop('mut',axis=1)
+    
     else:
         grouped = data.drop('location', axis=1)
 
