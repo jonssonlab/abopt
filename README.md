@@ -100,7 +100,7 @@ from abopt.src.cocktail.cocktail import run_simulations
 ```
 
 ## Generate paper results
-In order to generate the results from the <a href="https://www.biorxiv.org/">paper<\a>, please ensure that the correctly versioned packages are installed as stated in the installation section above. To produce the output and associated plots for the SatLasso regressors and coefficients, run the following bash command in the directory containing **abopt**:
+In order to generate the results from the <a href="https://www.biorxiv.org/">paper</a>, please ensure that the correctly versioned packages are installed as stated in the installation section above. To produce the output and associated plots for the SatLasso regressors and coefficients, run the following bash command in the directory containing **abopt**:
 ```
 python abopt/src/estimator/manuscript.py
 ```
