@@ -32,8 +32,13 @@ def label_chains(pdb_name):
     :param pdb_name: the name of the file on the RCSB PDB library
     :return: dictionary matching chain names to pdb tags
     """
+
+    if 'Repair_' in pdb_name: # this is an optimized antibody with no PDB entry
+        pdb_name = pdb_name[0:4]
+        
     fasta_url = 'https://www.rcsb.org/fasta/entry/' + pdb_name
     fasta_file = wget.download(fasta_url)
+    
     out_dict = {}
     with open(fasta_file, 'r') as f:
         for line in f:
